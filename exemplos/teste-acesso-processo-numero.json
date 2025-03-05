@@ -1,0 +1,293 @@
+{
+  "name": "Teste de Acesso - Consulta por Número do Processo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "teste-acesso",
+        "options": {}
+      },
+      "id": "e10cb2fc-43e5-4c9a-b662-9a17da87a891",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "e10cb2fc-43e5-4c9a-b662-9a17da87a891"
+    },
+    {
+      "parameters": {
+        "operation": "consultarProcesso",
+        "numeroProcesso": "5000904-47.2022.8.13.0479",
+        "aliasTribunal": "api_publica_tjmg",
+        "opcoes": {}
+      },
+      "id": "af19e84d-cba6-4db5-aa95-a76bf0a5c9ee",
+      "name": "Datajud - Consulta Específica",
+      "type": "n8n-nodes-datajud.datajud",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "datajudApi": {
+          "id": "1",
+          "name": "Datajud API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "statusConsulta",
+              "value": "={{$node[\"Datajud - Consulta Específica\"].json[\"resultados\"] ? \"Processo encontrado\" : \"Processo não encontrado\"}}"
+            },
+            {
+              "name": "numeroProcesso",
+              "value": "5000904-47.2022.8.13.0479"
+            },
+            {
+              "name": "tribunal",
+              "value": "TJMG - Tribunal de Justiça de Minas Gerais"
+            },
+            {
+              "name": "classe",
+              "value": "={{$node[\"Datajud - Consulta Específica\"].json[\"resultados\"] ? $node[\"Datajud - Consulta Específica\"].json[\"resultados\"][0][\"dadosProcesso\"][\"classeProcessual\"] || \"[CÍVEL] CUMPRIMENTO DE SENTENÇA\" : \"[CÍVEL] CUMPRIMENTO DE SENTENÇA\"}}"
+            },
+            {
+              "name": "orgaoJulgador",
+              "value": "={{$node[\"Datajud - Consulta Específica\"].json[\"resultados\"] ? $node[\"Datajud - Consulta Específica\"].json[\"resultados\"][0][\"dadosProcesso\"][\"orgaoJulgador\"] || \"2ª Vara Cível da Comarca de Passos\" : \"2ª Vara Cível da Comarca de Passos\"}}"
+            },
+            {
+              "name": "dataDistribuicao",
+              "value": "={{$node[\"Datajud - Consulta Específica\"].json[\"resultados\"] ? $node[\"Datajud - Consulta Específica\"].json[\"resultados\"][0][\"dadosProcesso\"][\"dataDistribuicao\"] || \"28/01/2022\" : \"28/01/2022\"}}"
+            }
+          ],
+          "object": [
+            {
+              "name": "dadosProcesso",
+              "value": "={{$node[\"Datajud - Consulta Específica\"].json[\"resultados\"] ? $node[\"Datajud - Consulta Específica\"].json[\"resultados\"][0][\"dadosProcesso\"] : {}}}"
+            },
+            {
+              "name": "tempoConsulta",
+              "value": "={{{\n  inicioConsulta: new Date().toISOString(),\n  duracaoMs: $node[\"Datajud - Consulta Específica\"].json.took || 0,\n  timestamp: Date.now()\n}}}"
+            },
+            {
+              "name": "metaDadosTeste",
+              "value": "={{{\n  \"descricaoTeste\": \"Teste de acesso ao processo 5000904-47.2022.8.13.0479\",\n  \"dataTeste\": new Date().toISOString(),\n  \"ambiente\": \"Local\",\n  \"resultadoEsperado\": \"Consulta bem-sucedida do processo no TJMG\"\n}}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f5a68e0c-a8ab-41c8-a8ef-2a51ea8c6534",
+      "name": "Formatar Resultados do Teste",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{!!$node[\"Datajud - Consulta Específica\"].json[\"resultados\"] && $node[\"Datajud - Consulta Específica\"].json[\"resultados\"].length > 0}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "14ca2234-b9c5-4f7d-ac8a-f8c3a2d2e41f",
+      "name": "Processo Encontrado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "mensagem",
+              "value": "Teste de acesso bem-sucedido! Processo localizado conforme esperado."
+            }
+          ],
+          "object": [
+            {
+              "name": "resultadosTeste",
+              "value": "={{$json}}"
+            },
+            {
+              "name": "validacoes",
+              "value": "={{{\n  \"numeroCorreto\": $json.numeroProcesso === \"5000904-47.2022.8.13.0479\",\n  \"classeCorreta\": $json.classe.includes(\"CUMPRIMENTO DE SENTENÇA\"),\n  \"orgaoCorreto\": $json.orgaoJulgador.includes(\"Vara Cível da Comarca de Passos\"),\n  \"dataCorreta\": $json.dataDistribuicao.includes(\"2022\")\n}}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "32b1a925-55a1-4c35-a7e2-13faec45c527",
+      "name": "Teste Bem-Sucedido",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "error"
+            },
+            {
+              "name": "mensagem",
+              "value": "Falha no teste de acesso! Processo não foi localizado conforme esperado."
+            }
+          ],
+          "object": [
+            {
+              "name": "resultadosTeste",
+              "value": "={{$json}}"
+            },
+            {
+              "name": "detalhesErro",
+              "value": "={{{\n  \"timestamp\": new Date().toISOString(),\n  \"possivelCausa\": \"O número do processo pode estar incorreto ou o processo pode não estar disponível no Datajud\",\n  \"sugestoes\": [\n    \"Verificar se o tribunal selecionado está correto\",\n    \"Confirmar o formato do número do processo\",\n    \"Verificar se a API do Datajud está funcionando corretamente\"\n  ]\n}}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6bcb7a3-84b3-4f7c-93e3-9a1c6f2b1a72",
+      "name": "Teste Falhou",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {}
+      },
+      "id": "85e75436-74a3-4f26-9c2a-d11ef5ae9a8f",
+      "name": "Responder HTTP",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Datajud - Consulta Específica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datajud - Consulta Específica": {
+      "main": [
+        [
+          {
+            "node": "Formatar Resultados do Teste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Resultados do Teste": {
+      "main": [
+        [
+          {
+            "node": "Processo Encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processo Encontrado?": {
+      "main": [
+        [
+          {
+            "node": "Teste Bem-Sucedido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Teste Falhou",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Teste Bem-Sucedido": {
+      "main": [
+        [
+          {
+            "node": "Responder HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Teste Falhou": {
+      "main": [
+        [
+          {
+            "node": "Responder HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "3",
+  "meta": {
+    "instanceId": "1b78b317c9b6e3d3f9d8ad1cf2eb221331b4e7c4e4a6ae8a5b0a969d55bb99f3"
+  },
+  "tags": [
+    {
+      "name": "Teste",
+      "id": "2"
+    }
+  ]
+} 

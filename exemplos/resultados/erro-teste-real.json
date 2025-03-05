@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-03-05T02:09:12.979Z",
+  "message": "Request failed with status code 400",
+  "executionTime": 253,
+  "stack": "AxiosError: Request failed with status code 400\n    at settle (C:\\Users\\Doto\\Documents\\CARLOS-HENRIQUE\\APLICACAO-API\\node_modules\\axios\\dist\\node\\axios.cjs:2031:12)\n    at Unzip.handleStreamEnd (C:\\Users\\Doto\\Documents\\CARLOS-HENRIQUE\\APLICACAO-API\\node_modules\\axios\\dist\\node\\axios.cjs:3148:11)\n    at Unzip.emit (node:events:525:35)\n    at endReadableNT (node:internal/streams/readable:1696:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)\n    at Axios.request (C:\\Users\\Doto\\Documents\\CARLOS-HENRIQUE\\APLICACAO-API\\node_modules\\axios\\dist\\node\\axios.cjs:4258:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async consultarProcessoPorNumero (C:\\Users\\Doto\\Documents\\CARLOS-HENRIQUE\\APLICACAO-API\\exemplos\\teste-real-api-datajud.js:30:22)",
+  "status": 400,
+  "statusText": "Bad Request",
+  "data": {
+    "error": {
+      "root_cause": [
+        {
+          "type": "parsing_exception",
+          "reason": "Unknown key for a VALUE_STRING in [numeroProcesso].",
+          "line": 1,
+          "col": 19
+        }
+      ],
+      "type": "parsing_exception",
+      "reason": "Unknown key for a VALUE_STRING in [numeroProcesso].",
+      "line": 1,
+      "col": 19
+    },
+    "status": 400
+  }
+}

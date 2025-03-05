@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Processual - Datajud</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .header {
+            background-color: #006699;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f1f8ff;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .btn-primary {
+            background-color: #006699;
+            border-color: #006699;
+        }
+        .btn-primary:hover {
+            background-color: #004d73;
+            border-color: #004d73;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        #resultados {
+            display: none;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #006699;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header text-center">
+            <h1><i class="bi bi-scale"></i> Consulta Processual</h1>
+            <p>Sistema de consulta integrado à API pública do Datajud</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <form id="formConsulta">
+                            <div class="mb-3">
+                                <label for="numeroProcesso" class="form-label">Número do Processo</label>
+                                <input type="text" class="form-control" id="numeroProcesso" 
+                                       placeholder="Ex: 5000904-47.2022.8.13.0479" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tribunal" class="form-label">Tribunal</label>
+                                <select class="form-select" id="tribunal" required>
+                                    <option value="api_publica_tjsp">TJSP - Tribunal de Justiça de São Paulo</option>
+                                    <option value="api_publica_tjrs">TJRS - Tribunal de Justiça do Rio Grande do Sul</option>
+                                    <option value="api_publica_tjmg">TJMG - Tribunal de Justiça de Minas Gerais</option>
+                                    <option value="api_publica_tjba">TJBA - Tribunal de Justiça da Bahia</option>
+                                    <option value="api_publica_tst">TST - Tribunal Superior do Trabalho</option>
+                                    <option value="api_publica_tse">TSE - Tribunal Superior Eleitoral</option>
+                                    <option value="api_publica_stj">STJ - Superior Tribunal de Justiça</option>
+                                    <option value="api_publica_stm">STM - Superior Tribunal Militar</option>
+                                    <option value="api_publica_trf1">TRF1 - Tribunal Regional Federal da 1ª Região</option>
+                                    <option value="api_publica_trf2">TRF2 - Tribunal Regional Federal da 2ª Região</option>
+                                    <option value="api_publica_trf3">TRF3 - Tribunal Regional Federal da 3ª Região</option>
+                                    <option value="api_publica_trf4">TRF4 - Tribunal Regional Federal da 4ª Região</option>
+                                    <option value="api_publica_trf5">TRF5 - Tribunal Regional Federal da 5ª Região</option>
+                                    <option value="api_publica_trf6">TRF6 - Tribunal Regional Federal da 6ª Região</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="filtrarData">
+                                <label class="form-check-label" for="filtrarData">Filtrar por data</label>
+                            </div>
+                            <div class="row filtro-data" style="display: none;">
+                                <div class="col-md-6 mb-3">
+                                    <label for="dataInicio" class="form-label">Data Inicial</label>
+                                    <input type="date" class="form-control" id="dataInicio">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="dataFim" class="form-label">Data Final</label>
+                                    <input type="date" class="form-control" id="dataFim">
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Consultar Processo</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p>Consultando dados do processo, aguarde...</p>
+                </div>
+
+                <div id="resultados">
+                    <div class="card">
+                        <div class="card-header">
+                            Informações do Processo
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <span class="info-label">Número do Processo:</span>
+                                    <span id="resultNumeroProcesso"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="info-label">Tribunal:</span>
+                                    <span id="resultTribunal"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <span class="info-label">Status:</span>
+                                    <span id="resultStatus"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="info-label">Classe:</span>
+                                    <span id="resultClasse"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <span class="info-label">Assunto:</span>
+                                    <span id="resultAssunto"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <span class="info-label">Partes:</span>
+                                    <div id="resultPartes" class="mt-2"></div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <span class="info-label">Movimentações:</span>
+                                    <div id="resultMovimentacoes" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const formConsulta = document.getElementById('formConsulta');
+            const filtrarData = document.getElementById('filtrarData');
+            const filtroData = document.querySelector('.filtro-data');
+            const loading = document.querySelector('.loading');
+            const resultados = document.getElementById('resultados');
+
+            // URL do seu fluxo de trabalho n8n
+            const n8nWebhookUrl = 'https://seu-n8n.exemplo.com/webhook/consulta-processo';
+
+            // Mostrar/ocultar filtro de data
+            filtrarData.addEventListener('change', function() {
+                filtroData.style.display = this.checked ? 'flex' : 'none';
+            });
+
+            // Processar envio do formulário
+            formConsulta.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const numeroProcesso = document.getElementById('numeroProcesso').value;
+                const tribunal = document.getElementById('tribunal').value;
+                
+                // Construir a URL de consulta
+                let url = `${n8nWebhookUrl}?numeroProcesso=${numeroProcesso}&tribunal=${tribunal}`;
+                
+                // Adicionar parâmetros de data se o filtro estiver ativado
+                if (filtrarData.checked) {
+                    const dataInicio = document.getElementById('dataInicio').value;
+                    const dataFim = document.getElementById('dataFim').value;
+                    
+                    if (dataInicio) url += `&dataInicio=${dataInicio}`;
+                    if (dataFim) url += `&dataFim=${dataFim}`;
+                }
+                
+                // Mostrar loading e esconder resultados
+                loading.style.display = 'block';
+                resultados.style.display = 'none';
+                
+                // Fazer a requisição para o n8n
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Preencher os dados na interface
+                        document.getElementById('resultNumeroProcesso').textContent = data.numeroProcesso;
+                        document.getElementById('resultTribunal').textContent = getTribunalNome(data.tribunal);
+                        document.getElementById('resultStatus').textContent = data.statusConsulta;
+                        
+                        // Verificar se existem dados do processo
+                        if (data.dadosProcesso && Object.keys(data.dadosProcesso).length > 0) {
+                            document.getElementById('resultClasse').textContent = data.dadosProcesso.classeProcessual || '-';
+                            document.getElementById('resultAssunto').textContent = data.dadosProcesso.assunto || '-';
+                            
+                            // Renderizar partes do processo
+                            const partesElement = document.getElementById('resultPartes');
+                            partesElement.innerHTML = '';
+                            
+                            if (data.dadosProcesso.partes && data.dadosProcesso.partes.length > 0) {
+                                const partesLista = document.createElement('ul');
+                                partesLista.className = 'list-group';
+                                
+                                data.dadosProcesso.partes.forEach(parte => {
+                                    const item = document.createElement('li');
+                                    item.className = 'list-group-item';
+                                    item.innerHTML = `<strong>${parte.tipo || 'Parte'}:</strong> ${parte.nome || '-'}`;
+                                    partesLista.appendChild(item);
+                                });
+                                
+                                partesElement.appendChild(partesLista);
+                            } else {
+                                partesElement.textContent = 'Informações de partes não disponíveis.';
+                            }
+                            
+                            // Renderizar movimentações
+                            const movimentacoesElement = document.getElementById('resultMovimentacoes');
+                            movimentacoesElement.innerHTML = '';
+                            
+                            if (data.dadosProcesso.movimentacoes && data.dadosProcesso.movimentacoes.length > 0) {
+                                const movimentacoesLista = document.createElement('ul');
+                                movimentacoesLista.className = 'list-group';
+                                
+                                data.dadosProcesso.movimentacoes.slice(0, 10).forEach(mov => { // Limitar a 10 movimentações
+                                    const item = document.createElement('li');
+                                    item.className = 'list-group-item';
+                                    const data = new Date(mov.data).toLocaleDateString('pt-BR');
+                                    item.innerHTML = `<strong>${data}:</strong> ${mov.descricao || '-'}`;
+                                    movimentacoesLista.appendChild(item);
+                                });
+                                
+                                movimentacoesElement.appendChild(movimentacoesLista);
+                            } else {
+                                movimentacoesElement.textContent = 'Informações de movimentações não disponíveis.';
+                            }
+                        } else {
+                            // Caso não tenha dados do processo
+                            document.getElementById('resultClasse').textContent = '-';
+                            document.getElementById('resultAssunto').textContent = '-';
+                            document.getElementById('resultPartes').textContent = 'Informações não disponíveis.';
+                            document.getElementById('resultMovimentacoes').textContent = 'Informações não disponíveis.';
+                        }
+                        
+                        // Esconder loading e mostrar resultados
+                        loading.style.display = 'none';
+                        resultados.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Erro na consulta:', error);
+                        alert('Ocorreu um erro ao consultar o processo. Por favor, tente novamente.');
+                        loading.style.display = 'none';
+                    });
+            });
+
+            // Função para obter o nome do tribunal pelo alias
+            function getTribunalNome(alias) {
+                const tribunais = {
+                    'api_publica_tjsp': 'TJSP - Tribunal de Justiça de São Paulo',
+                    'api_publica_tjrs': 'TJRS - Tribunal de Justiça do Rio Grande do Sul',
+                    'api_publica_tjmg': 'TJMG - Tribunal de Justiça de Minas Gerais',
+                    'api_publica_tjba': 'TJBA - Tribunal de Justiça da Bahia',
+                    'api_publica_tst': 'TST - Tribunal Superior do Trabalho',
+                    'api_publica_tse': 'TSE - Tribunal Superior Eleitoral',
+                    'api_publica_stj': 'STJ - Superior Tribunal de Justiça',
+                    'api_publica_stm': 'STM - Superior Tribunal Militar',
+                    'api_publica_trf1': 'TRF1 - Tribunal Regional Federal da 1ª Região',
+                    'api_publica_trf2': 'TRF2 - Tribunal Regional Federal da 2ª Região',
+                    'api_publica_trf3': 'TRF3 - Tribunal Regional Federal da 3ª Região',
+                    'api_publica_trf4': 'TRF4 - Tribunal Regional Federal da 4ª Região',
+                    'api_publica_trf5': 'TRF5 - Tribunal Regional Federal da 5ª Região',
+                    'api_publica_trf6': 'TRF6 - Tribunal Regional Federal da 6ª Região'
+                };
+                return tribunais[alias] || alias;
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,43 @@
+{
+  "resultados": [
+    {
+      "numeroProcesso": "5000904-47.2022.8.13.0479",
+      "dadosProcesso": {
+        "classeProcessual": "[CÍVEL] CUMPRIMENTO DE SENTENÇA",
+        "orgaoJulgador": "2ª Vara Cível da Comarca de Passos",
+        "dataDistribuicao": "28/01/2022",
+        "valorCausa": "R$ 15.236,42",
+        "assunto": "Adimplemento e Extinção, Direito Civil",
+        "partes": [
+          {
+            "nome": "JOÃO SILVA",
+            "documento": "123.456.789-00",
+            "tipo": "AUTOR"
+          },
+          {
+            "nome": "EMPRESA XYZ LTDA",
+            "documento": "12.345.678/0001-90",
+            "tipo": "REU"
+          }
+        ],
+        "movimentacoes": [
+          {
+            "data": "15/02/2023",
+            "descricao": "Sentença - Procedente"
+          },
+          {
+            "data": "10/11/2022",
+            "descricao": "Audiência de Conciliação - Realizada"
+          },
+          {
+            "data": "28/01/2022",
+            "descricao": "Distribuição"
+          }
+        ]
+      }
+    }
+  ],
+  "total": 1,
+  "took": 257,
+  "status": 200
+} 

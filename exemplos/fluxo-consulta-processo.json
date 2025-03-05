@@ -1,0 +1,141 @@
+{
+  "name": "Consulta de Processo - Datajud",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "consulta-processo",
+        "options": {}
+      },
+      "id": "bd59f88e-7a71-4c8a-b662-fe23e47e4991",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "bd59f88e-7a71-4c8a-b662-fe23e47e4991"
+    },
+    {
+      "parameters": {
+        "operation": "consultarProcesso",
+        "numeroProcesso": "={{$node[\"Webhook\"].json[\"query\"][\"numeroProcesso\"]}}",
+        "aliasTribunal": "={{$node[\"Webhook\"].json[\"query\"][\"tribunal\"] || \"api_publica_tjsp\"}}",
+        "options": {}
+      },
+      "id": "efc1b84c-fa76-4db5-aa55-c76bf0a3a5ee",
+      "name": "Datajud",
+      "type": "n8n-nodes-datajud.datajud",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "datajudApi": {
+          "id": "1",
+          "name": "Datajud API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "statusConsulta",
+              "value": "={{$node[\"Datajud\"].json[\"resultados\"] ? \"Processo encontrado\" : \"Processo não encontrado\"}}"
+            },
+            {
+              "name": "numeroProcesso",
+              "value": "={{$node[\"Datajud\"].json[\"resultados\"] ? $node[\"Datajud\"].json[\"resultados\"][0][\"numeroProcesso\"] : $node[\"Webhook\"].json[\"query\"][\"numeroProcesso\"]}}"
+            },
+            {
+              "name": "tribunal",
+              "value": "={{$node[\"Webhook\"].json[\"query\"][\"tribunal\"] || \"api_publica_tjsp\"}}"
+            }
+          ],
+          "object": [
+            {
+              "name": "dadosProcesso",
+              "value": "={{$node[\"Datajud\"].json[\"resultados\"] ? $node[\"Datajud\"].json[\"resultados\"][0][\"dadosProcesso\"] : {}}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "80f8a0ef-a8ab-40c8-a8cf-2a61ef8c6534",
+      "name": "Formatar Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$node[\"Formatar Dados\"].json}}",
+        "options": {}
+      },
+      "id": "d6e63eea-2725-4b48-a71a-9d9e32bcfad0",
+      "name": "Responder HTTP",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Datajud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datajud": {
+      "main": [
+        [
+          {
+            "node": "Formatar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Dados": {
+      "main": [
+        [
+          {
+            "node": "Responder HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "1",
+  "meta": {
+    "instanceId": "1b78b317c9b6e3d3f9d8ad1cf2eb221331b4e7c4e4a6ae8a5b0a969d55bb99f3"
+  },
+  "tags": [
+    {
+      "name": "Consulta Judicial",
+      "id": "1"
+    }
+  ]
+} 

@@ -1,0 +1,258 @@
+{
+  "name": "Busca por Nome de Parte - Datajud",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "busca-por-nome",
+        "options": {}
+      },
+      "id": "48cfa392-7c1b-4a9a-b662-9f17dec87ab5",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "48cfa392-7c1b-4a9a-b662-9f17dec87ab5"
+    },
+    {
+      "parameters": {
+        "operation": "consultarPorNome",
+        "nomeParte": "={{$node[\"Webhook\"].json[\"query\"][\"nome\"]}}",
+        "aliasTribunal": "={{$node[\"Webhook\"].json[\"query\"][\"tribunal\"] || \"api_publica_tjsp\"}}",
+        "tipoRolParte": "={{$node[\"Webhook\"].json[\"query\"][\"tipo\"] || \"\"}}",
+        "opcoes": {
+          "dataInicio": "={{$node[\"Webhook\"].json[\"query\"][\"dataInicio\"] || \"\"}}",
+          "dataFim": "={{$node[\"Webhook\"].json[\"query\"][\"dataFim\"] || \"\"}}"
+        },
+        "opcoesPaginacao": {
+          "pagina": "={{$node[\"Webhook\"].json[\"query\"][\"pagina\"] || 1}}",
+          "tamanhoPagina": "={{$node[\"Webhook\"].json[\"query\"][\"tamanhoPagina\"] || 20}}"
+        }
+      },
+      "id": "6e98d51c-3b7a-4c5c-a4e2-e9a7f6d8b21d",
+      "name": "Datajud",
+      "type": "n8n-nodes-datajud.datajud",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "datajudApi": {
+          "id": "1",
+          "name": "Datajud API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{!!$node[\"Datajud\"].json[\"resultados\"] && $node[\"Datajud\"].json[\"resultados\"].length > 0}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "b8a6d2ff-a9c5-4c3d-a98a-f8c6a2d5e31f",
+      "name": "Processos Encontrados?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "mensagem",
+              "value": "={{\"Foram encontrados \" + $node[\"Datajud\"].json[\"total\"] + \" processos para a parte '\" + $node[\"Webhook\"].json[\"query\"][\"nome\"] + \"'\"}}"
+            },
+            {
+              "name": "nomePesquisado",
+              "value": "={{$node[\"Webhook\"].json[\"query\"][\"nome\"]}}"
+            },
+            {
+              "name": "tribunal",
+              "value": "={{$node[\"Webhook\"].json[\"query\"][\"tribunal\"] || \"api_publica_tjsp\"}}"
+            }
+          ],
+          "number": [
+            {
+              "name": "totalProcessos",
+              "value": "={{$node[\"Datajud\"].json[\"total\"] || 0}}"
+            },
+            {
+              "name": "paginaAtual",
+              "value": "={{$node[\"Webhook\"].json[\"query\"][\"pagina\"] || 1}}"
+            }
+          ],
+          "array": [
+            {
+              "name": "processos",
+              "value": "={{$node[\"Datajud\"].json[\"resultados\"].map(p => ({\n  numeroProcesso: p.numeroProcesso,\n  tribunal: $node[\"Webhook\"].json[\"query\"][\"tribunal\"] || \"api_publica_tjsp\",\n  classe: p.dadosProcesso.classeProcessual || \"-\",\n  assunto: p.dadosProcesso.assunto || \"-\",\n  dataDistribuicao: p.dadosProcesso.dataDistribuicao || \"-\",\n  partes: p.dadosProcesso.partes || [],\n  ultimaMovimentacao: p.dadosProcesso.movimentacoes && p.dadosProcesso.movimentacoes.length > 0 ? {\n    data: p.dadosProcesso.movimentacoes[0].data,\n    descricao: p.dadosProcesso.movimentacoes[0].descricao\n  } : null\n}));}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2a71935-55bc-4c75-87a2-11ffe834c927",
+      "name": "Formatar Resultados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        900,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "error"
+            },
+            {
+              "name": "mensagem",
+              "value": "={{\"Não foram encontrados processos para a parte '\" + $node[\"Webhook\"].json[\"query\"][\"nome\"] + \"' com os filtros especificados\"}}"
+            },
+            {
+              "name": "nomePesquisado",
+              "value": "={{$node[\"Webhook\"].json[\"query\"][\"nome\"]}}"
+            },
+            {
+              "name": "tribunal",
+              "value": "={{$node[\"Webhook\"].json[\"query\"][\"tribunal\"] || \"api_publica_tjsp\"}}"
+            }
+          ],
+          "number": [
+            {
+              "name": "totalProcessos",
+              "value": 0
+            }
+          ],
+          "array": [
+            {
+              "name": "processos",
+              "value": "=[]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d2bcb7f5-88d3-4e7c-9c93-9a4c6f2e1a72",
+      "name": "Nenhum Processo",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        900,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {}
+      },
+      "id": "e5e7c436-84a2-4f29-9c2b-d121f5ce9a8f",
+      "name": "Responder HTTP",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Datajud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datajud": {
+      "main": [
+        [
+          {
+            "node": "Processos Encontrados?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processos Encontrados?": {
+      "main": [
+        [
+          {
+            "node": "Formatar Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Nenhum Processo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Resultados": {
+      "main": [
+        [
+          {
+            "node": "Responder HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nenhum Processo": {
+      "main": [
+        [
+          {
+            "node": "Responder HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "2",
+  "meta": {
+    "instanceId": "1b78b317c9b6e3d3f9d8ad1cf2eb221331b4e7c4e4a6ae8a5b0a969d55bb99f3"
+  },
+  "tags": [
+    {
+      "name": "Consulta Judicial",
+      "id": "1"
+    }
+  ]
+} 
